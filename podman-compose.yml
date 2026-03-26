@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Containerfile
+      # Enable BuildKit for cache mount support
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    container_name: personal-dashboard
+    ports:
+      - "4173:3000"
+    environment:
+      # Plaid API credentials
+      PLAID_CLIENT_ID: ${PLAID_CLIENT_ID:-}
+      PLAID_SECRET: ${PLAID_SECRET:-}
+      PLAID_ENV: ${PLAID_ENV:-sandbox}
+
+      # Coinbase API credentials
+      COINBASE_CLIENT_ID: ${COINBASE_CLIENT_ID:-}
+      COINBASE_CLIENT_SECRET: ${COINBASE_CLIENT_SECRET:-}
+      COINBASE_REDIRECT_URI: ${COINBASE_REDIRECT_URI:-http://localhost:3000/api/crypto/oauth/callback}
+
+      # Database
+      DATABASE_URL: ${DATABASE_URL:-file:./dev.db}
+
+      # NextAuth
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:4173}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+
+      # Email (optional)
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+
+      NODE_ENV: production
+
+    volumes:
+      - dashboard-data:/app
+      - node-modules:/app/node_modules
+
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "2g"
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  dashboard-data:
+    driver: local
+  node-modules:
+    driver: local
