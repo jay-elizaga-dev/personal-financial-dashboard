@@ -4,6 +4,8 @@ import { CountryCode, Products } from "plaid";
 
 export async function POST() {
   try {
+    const redirectUri = process.env.PLAID_REDIRECT_URI;
+
     const request = {
       user: { client_user_id: "user-id" },
       client_name: "Personal Finance Dashboard",
@@ -13,16 +15,19 @@ export async function POST() {
       transactions: {
         days_requested: 730, // Request 2 years of data
       },
+      // Required for OAuth institutions (most banks in production)
+      ...(redirectUri && { redirect_uri: redirectUri }),
       // TODO: to enable investments, need to enable in Plaid dashboard first
       // optional_products: [Products.Investments], // Make investments optional
     };
 
     const response = await plaidClient.linkTokenCreate(request);
     return NextResponse.json(response.data);
-  } catch (error) {
-    console.error("Error creating link token:", error);
+  } catch (error: any) {
+    const plaidError = error?.response?.data;
+    console.error("Error creating link token:", plaidError || error);
     return NextResponse.json(
-      { error: "Failed to create link token" },
+      { error: "Failed to create link token", details: plaidError },
       { status: 500 }
     );
   }

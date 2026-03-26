@@ -44,9 +44,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 
-# Create app user
+# Create app user and data directory for persistent storage
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 && \
+    mkdir -p /app/data && \
     chown -R nextjs:nodejs /app
 
 USER nextjs
@@ -58,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start"]

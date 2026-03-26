@@ -16,18 +16,20 @@ services:
       PLAID_CLIENT_ID: ${PLAID_CLIENT_ID:-}
       PLAID_SECRET: ${PLAID_SECRET:-}
       PLAID_ENV: ${PLAID_ENV:-sandbox}
+      PLAID_REDIRECT_URI: ${PLAID_REDIRECT_URI:-}
 
       # Coinbase API credentials
       COINBASE_CLIENT_ID: ${COINBASE_CLIENT_ID:-}
       COINBASE_CLIENT_SECRET: ${COINBASE_CLIENT_SECRET:-}
       COINBASE_REDIRECT_URI: ${COINBASE_REDIRECT_URI:-http://localhost:3000/api/crypto/oauth/callback}
 
-      # Database
-      DATABASE_URL: ${DATABASE_URL:-file:./dev.db}
+      # Database (persisted on dashboard-data volume at /app/data)
+      DATABASE_URL: ${DATABASE_URL:-file:./data/dev.db}
 
       # NextAuth
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:4173}
+      AUTH_TRUST_HOST: "true"
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
 
       # Email (optional)
@@ -40,8 +42,7 @@ services:
       NODE_ENV: production
 
     volumes:
-      - dashboard-data:/app
-      - node-modules:/app/node_modules
+      - dashboard-data:/app/data
 
     deploy:
       resources:
@@ -51,7 +52,7 @@ services:
 
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => { if (r.statusCode !== 200) process.exit(1) }).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -59,6 +60,4 @@ services:
 
 volumes:
   dashboard-data:
-    driver: local
-  node-modules:
     driver: local
