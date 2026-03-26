@@ -12,6 +12,33 @@ A dashboard to track all your financial accounts in one place using Plaid API an
 - A Plaid account (Development or Production)
 - (Optional) Amazon SES account for email notifications
 
+## Authentication
+
+This dashboard is password-protected with a single password configured via the `DASHBOARD_PASSWORD` environment variable. The authentication system uses NextAuth.js with JWT sessions and is suitable for solo use.
+
+### How It Works
+- **Login Page**: Unauthenticated access redirects to `/login`
+- **Password-Based Auth**: A single password protects the entire dashboard
+- **Session Management**: Successful login creates a JWT session token stored in cookies
+- **Auto-Logout**: Sign Out button available in the sidebar clears the session
+
+### Setting Your Password
+1. In your `.env` file, set a secure password:
+   ```env
+   DASHBOARD_PASSWORD="your_secure_password_here"
+   ```
+2. Generate a strong password (recommend 12+ characters)
+3. **Security Note**: Keep this password safe. If your code or `.env` file is ever exposed, change this password immediately.
+
+### First Time Login
+1. Start the application
+2. You'll be redirected to the login page
+3. Enter your `DASHBOARD_PASSWORD`
+4. Click "Sign In"
+5. You'll be redirected to the dashboard
+
+---
+
 ## Setup Instructions
 
 ### 1. Plaid Setup
@@ -52,6 +79,13 @@ A dashboard to track all your financial accounts in one place using Plaid API an
 
 4. Update `.env` with your credentials:
    ```env
+   # Dashboard Authentication
+   DASHBOARD_PASSWORD="your_secure_password_here"
+
+   # Next Auth (generate a secret with: openssl rand -base64 32)
+   NEXTAUTH_SECRET="your_generated_secret"
+   NEXTAUTH_URL="http://localhost:3000"
+
    # Plaid API credentials
    PLAID_CLIENT_ID="your_client_id"
    PLAID_SECRET="your_secret"
@@ -64,10 +98,6 @@ A dashboard to track all your financial accounts in one place using Plaid API an
 
    # Database
    DATABASE_URL="file:./dev.db"
-
-   # Next Auth (generate a secret with: openssl rand -base64 32)
-   NEXTAUTH_SECRET="your_generated_secret"
-   NEXTAUTH_URL="http://localhost:3000"
    ```
 
 ### 4. Database Setup
